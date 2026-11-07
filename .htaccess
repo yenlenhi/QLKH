@@ -1,0 +1,43 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /QLNCKH/
+
+    # Bỏ qua nếu là file hoặc thư mục vật lý thực tế (asset, CSS, JS, ảnh, upload)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Trang chủ mặc định khi truy cập /QLNCKH/
+    RewriteRule ^$ View/r1_home.php [L,QSA]
+
+    # --- 1. ROUTING URL THÂN THIỆN CHO PHÂN HỆ R1 ---
+    RewriteRule ^dashboard$ View/r1_home.php [L,QSA]
+    RewriteRule ^dang-ky-de-tai$ View/r1_register_project.php [L,QSA]
+    RewriteRule ^quan-ly-nhiem-vu$ View/r1_overview.php [L,QSA]
+    RewriteRule ^dang-ky-tai-khoan$ View/r1_register_account.php [L,QSA]
+    RewriteRule ^phan-quyen$ View/r1_permission.php [L,QSA]
+    RewriteRule ^huong-dan$ View/r1_guide_list.php [L,QSA]
+    RewriteRule ^quan-ly-nguoi-dung$ View/r1_users.php [L,QSA]
+    RewriteRule ^cau-hinh-he-thong$ View/r1_system_config.php [L,QSA]
+    RewriteRule ^thung-rac$ View/r1_trash.php [L,QSA]
+    RewriteRule ^lich-su$ View/r1_leadership_activity_log.php [L,QSA]
+    RewriteRule ^noi-dung-nhiem-vu$ View/r1_project_detail.php [L,QSA]
+
+    # --- 2. ROUTING URL THÂN THIỆN CHO PHÂN HỆ R3 ---
+    RewriteRule ^trang-chu$ View/r3_home.php [L,QSA]
+    RewriteRule ^nhiem-vu-cua-toi$ View/r3_my_projects.php [L,QSA]
+    RewriteRule ^dang-ky-de-tai-nckh$ View/r3_project_register.php [L,QSA]
+    RewriteRule ^nhiem-vu-de-xuat-thuc-hien$ View/r3_proposed_projects.php [L,QSA]
+    RewriteRule ^ly-lich-khoa-hoc$ View/r3_scientific_cv.php [L,QSA]
+
+    # Hỗ trợ cả 2 dạng URL chi tiết và cập nhật: dạng phẳng và dạng route ID
+    RewriteRule ^chi-tiet-de-tai$ View/r3_project_detail.php [L,QSA]
+    RewriteRule ^cap-nhat-de-tai$ View/r3_project_update.php [L,QSA]
+    RewriteRule ^de-tai/([0-9]+)$ View/r3_project_detail.php?id=$1 [L,QSA]
+    RewriteRule ^cap-nhat/([0-9]+)$ View/r3_project_update.php?id=$1 [L,QSA]
+
+    # Chặn người dùng gõ trực tiếp đuôi .php từ thanh địa chỉ trình duyệt
+    RewriteCond %{ENV:REDIRECT_STATUS} ^$
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/QLNCKH/View/([^\s]+)\.php [NC]
+    RewriteRule ^View/ - [F,L]
+</IfModule>
