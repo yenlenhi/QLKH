@@ -79,12 +79,12 @@ def workbook_bytes(data: dict) -> bytes:
 def put_blob(contents: bytes) -> str:
     pathname = f'exports/Bao_Cao_NCKH_{datetime.now():%Y%m%d_%H%M%S}.xlsx'
     request = Request(
-        f'https://blob.vercel-storage.com/?pathname={quote(pathname)}',
+        f'https://vercel.com/api/blob/?pathname={quote(pathname)}',
         data=contents,
         method='PUT',
         headers={
             'Authorization': f"Bearer {os.environ['BLOB_READ_WRITE_TOKEN']}",
-            'x-api-version': '7',
+            'x-api-version': '13',
             'x-vercel-blob-access': 'public',
             'x-add-random-suffix': '1',
             'x-content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

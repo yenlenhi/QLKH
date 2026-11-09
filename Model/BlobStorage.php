@@ -16,14 +16,14 @@ function uploadToBlob(string $temporaryPath, string $pathname, string $contentTy
     }
 
     $safePath = trim(preg_replace('#[^A-Za-z0-9._/-]+#', '-', $pathname), '/');
-    $request = curl_init('https://blob.vercel-storage.com/?pathname=' . rawurlencode($safePath));
+    $request = curl_init('https://vercel.com/api/blob/?pathname=' . rawurlencode($safePath));
     curl_setopt_array($request, [
         CURLOPT_CUSTOMREQUEST => 'PUT',
         CURLOPT_POSTFIELDS => $contents,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => [
             'Authorization: Bearer ' . requireAppEnv('BLOB_READ_WRITE_TOKEN'),
-            'x-api-version: 7',
+            'x-api-version: 13',
             'x-vercel-blob-access: public',
             'x-add-random-suffix: 1',
             'x-content-type: ' . $contentType,
@@ -47,14 +47,14 @@ function deleteFromBlob(?string $url): void
         return;
     }
 
-    $request = curl_init('https://blob.vercel-storage.com/delete');
+    $request = curl_init('https://vercel.com/api/blob/delete');
     curl_setopt_array($request, [
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => json_encode(['urls' => [$url]], JSON_THROW_ON_ERROR),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => [
             'Authorization: Bearer ' . requireAppEnv('BLOB_READ_WRITE_TOKEN'),
-            'x-api-version: 7',
+            'x-api-version: 13',
             'Content-Type: application/json',
         ],
     ]);

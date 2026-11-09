@@ -23,12 +23,12 @@ def blob_url(relative_path: str) -> str:
         raise FileNotFoundError(relative_path)
     pathname = f'legacy/{secrets.token_hex(12)}-{source.name}'
     request = Request(
-        f'https://blob.vercel-storage.com/?pathname={quote(pathname)}',
+        f'https://vercel.com/api/blob/?pathname={quote(pathname)}',
         data=source.read_bytes(),
         method='PUT',
         headers={
             'Authorization': f"Bearer {os.environ['BLOB_READ_WRITE_TOKEN']}",
-            'x-api-version': '7',
+            'x-api-version': '13',
             'x-vercel-blob-access': 'public',
             'x-add-random-suffix': '1',
             'x-content-type': mimetypes.guess_type(source.name)[0] or 'application/octet-stream',

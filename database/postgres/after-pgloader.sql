@@ -1,6 +1,18 @@
 -- Run after pgloader has copied the restricted MariaDB dev dump into Neon.
 -- Keep this file in Git; never commit the dump itself or connection URLs.
 
+-- pgloader creates a schema named after the source MariaDB database. The app
+-- uses PostgreSQL's default `public` schema, so replace the empty/interrupted
+-- target schema and promote the imported schema before adding app triggers.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'db_qlnckh') THEN
+    DROP SCHEMA IF EXISTS public CASCADE;
+    ALTER SCHEMA db_qlnckh RENAME TO public;
+  END IF;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql
