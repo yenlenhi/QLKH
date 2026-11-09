@@ -9,6 +9,7 @@
 
     # Trang chủ mặc định khi truy cập /QLNCKH/
     RewriteRule ^$ View/r1_home.php [L,QSA]
+    RewriteRule ^health$ api/health.php [L,QSA]
 
     # --- 1. ROUTING URL THÂN THIỆN CHO PHÂN HỆ R1 ---
     RewriteRule ^dashboard$ View/r1_home.php [L,QSA]

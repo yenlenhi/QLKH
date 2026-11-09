@@ -1,0 +1,11 @@
+.git
+.vercel
+.playwright-cli
+.env
+.env.*
+db_qlnckh.sql
+db_qlnckh (1).sql
+LOCAL_SETUP.md
+asset/file
+asset/img/upload
+api/__pycache__

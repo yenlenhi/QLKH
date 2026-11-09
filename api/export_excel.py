@@ -1,8 +1,11 @@
+#!/opt/venv/bin/python
+
 import base64
 import hashlib
 import hmac
 import json
 import os
+import sys
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 from io import BytesIO
@@ -40,6 +43,18 @@ def active_session(payload: dict) -> bool:
                 (payload.get('user_id'), payload.get('session_token')),
             )
             return cursor.fetchone() is not None
+
+
+def export_workbook(data: dict, authorization: str) -> tuple[int, dict]:
+    try:
+        payload = decode_token(authorization.removeprefix('Bearer ').strip())
+        if not active_session(payload):
+            raise PermissionError('Session revoked')
+        return 200, {'status': 'success', 'url': put_blob(workbook_bytes(data))}
+    except PermissionError:
+        return 401, {'status': 'error', 'message': 'Phiên đăng nhập không hợp lệ.'}
+    except Exception:
+        return 500, {'status': 'error', 'message': 'Không thể kết xuất Excel.'}
 
 
 def workbook_bytes(data: dict) -> bytes:
@@ -109,12 +124,28 @@ class handler(BaseHTTPRequestHandler):
             length = int(self.headers.get('Content-Length', '0'))
             data = json.loads(self.rfile.read(length))
             authorization = self.headers.get('Authorization', '')
-            payload = decode_token(authorization.removeprefix('Bearer ').strip())
-            if not active_session(payload):
-                raise PermissionError('Session revoked')
-            url = put_blob(workbook_bytes(data))
-            self.respond_json(200, {'status': 'success', 'url': url})
-        except PermissionError:
-            self.respond_json(401, {'status': 'error', 'message': 'Phiên đăng nhập không hợp lệ.'})
+            status, response = export_workbook(data, authorization)
+            self.respond_json(status, response)
         except Exception:
             self.respond_json(500, {'status': 'error', 'message': 'Không thể kết xuất Excel.'})
+
+
+def run_cgi() -> None:
+    try:
+        length = int(os.environ.get('CONTENT_LENGTH', '0'))
+        data = json.loads(sys.stdin.buffer.read(length))
+        status, response = export_workbook(data, os.environ.get('HTTP_AUTHORIZATION', ''))
+    except Exception:
+        status, response = 500, {'status': 'error', 'message': 'Không thể kết xuất Excel.'}
+
+    body = json.dumps(response, ensure_ascii=False).encode()
+    reason = 'OK' if status == 200 else ('Unauthorized' if status == 401 else 'Internal Server Error')
+    sys.stdout.write(f'Status: {status} {reason}\r\n')
+    sys.stdout.write('Content-Type: application/json; charset=utf-8\r\n')
+    sys.stdout.write(f'Content-Length: {len(body)}\r\n\r\n')
+    sys.stdout.flush()
+    sys.stdout.buffer.write(body)
+
+
+if __name__ == '__main__':
+    run_cgi()
