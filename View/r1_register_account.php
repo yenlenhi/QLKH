@@ -97,7 +97,7 @@
     <script src="../asset/script/bootstrap5.js"></script>
     <script src="../asset/script/sidebar.js"></script>
     <script>
-        const API_URL = "../index_api.php";
+        const API_URL = "/QLNCKH/index_api.php";
 
         // 2. Xử lý UI Tiền tố tự động & Preview Username
         const userTypeSelect = document.getElementById('userType');

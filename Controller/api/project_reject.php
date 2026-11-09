@@ -11,6 +11,7 @@ header("Access-Control-Allow-Methods: POST");
 
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/Notification.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $project_id = isset($input['project_id']) ? intval($input['project_id']) : (isset($_POST['project_id']) ? intval($_POST['project_id']) : 0);
@@ -43,13 +44,9 @@ try {
     // 3. TỰ ĐỘNG GỬI THÔNG BÁO TỪ CHỐI CHO GIẢNG VIÊN
     $targetUserId = intval($proj['project_user_action_id'] ?: $proj['user_id']);
     if ($targetUserId > 0) {
-        $stmtNoti = $pdo->prepare("INSERT INTO tbl_notifications (user_id, project_id, title, content, type, is_read, created_at) VALUES (?, ?, ?, ?, 'DANGER', 0, NOW())");
-        $stmtNoti->execute([
-            $targetUserId,
-            $project_id,
+        $notificationId = createNotification($pdo, $targetUserId, $project_id,
             "Đề tài bị từ chối [{$proj['project_code']}]",
-            "Đề tài \"{$proj['project_name']}\" không được thông qua. Vui lòng kiểm tra lại hồ sơ thuyết minh."
-        ]);
+            "Đề tài \"{$proj['project_name']}\" không được thông qua. Vui lòng kiểm tra lại hồ sơ thuyết minh.", 'DANGER');
     }
 
     // --- BỔ SUNG GHI LOG ---
@@ -58,6 +55,9 @@ try {
     writeActivityLog($pdo, $current_user_id, 'REJECT', 'Quản lý Đề tài', $project_id, "Đã từ chối duyệt đề tài: [{$proj['project_code']}] {$proj['project_name']}");
     // -----------------------
     $pdo->commit();
+    if (isset($notificationId)) {
+        publishNotificationSafely($targetUserId, $notificationId, $project_id, "Đề tài bị từ chối [{$proj['project_code']}]", 'DANGER');
+    }
     http_response_code(200);
     echo json_encode([
         "status" => "success",

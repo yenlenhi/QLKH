@@ -22,7 +22,7 @@ if ($userId <= 0) {
 try {
     // 1. Lấy 10 thông báo mới nhất của đúng user_id
     $sqlNotifications = "SELECT id, project_id, title, content, type, is_read, 
-                                DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') AS created_at 
+                                TO_CHAR(created_at, 'DD/MM/YYYY HH24:MI') AS created_at 
                          FROM tbl_notifications 
                          WHERE user_id = :user_id
                          ORDER BY id DESC 

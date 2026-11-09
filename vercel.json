@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "functions": {
+    "api/router.php": {
+      "runtime": "vercel-php@0.9.0",
+      "includeFiles": "{Controller/**,Model/**,View/**,asset/**,index.php,index_api.php,vercel-router.php}"
+    },
+    "api/index_api.php": {
+      "runtime": "vercel-php@0.9.0",
+      "includeFiles": "{Controller/**,Model/**,asset/**,index_api.php}"
+    }
+  },
+  "routes": [
+    { "src": "/QLNCKH/api/export-excel", "dest": "/api/export_excel.py" },
+    { "src": "/QLNCKH/index_api.php", "dest": "/api/index_api.php" },
+    { "src": "/QLNCKH/asset/(.*)", "dest": "/asset/$1" },
+    { "src": "/QLNCKH(?:/(.*))?", "dest": "/api/router.php" },
+    { "src": "/(?:Controller|Model|View|api)/(.*)", "status": 404 },
+    { "src": "/(?:.*\\.(?:sql|env|ini|log))", "status": 404 }
+  ]
+}

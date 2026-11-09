@@ -91,7 +91,7 @@
         //         mainContent.classList.toggle('expanded');
         //     }
         // }
-        const API_URL = "../index_api.php";
+        const API_URL = "/QLNCKH/index_api.php";
 
         document.addEventListener('DOMContentLoaded', function() {
             // Validation: Chỉ cho phép nhập số

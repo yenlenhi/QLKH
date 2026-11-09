@@ -278,7 +278,7 @@
     <script src="../asset/script/bootstrap5.js"></script>
     <script src="../asset/script/sidebar.js"></script>
     <script>
-        const API_URL = '../index_api.php';
+        const API_URL = '/QLNCKH/index_api.php';
         let compareChartInstance = null;
         let cachedDashboardData = null;
         let hasInitializedYears = false;
@@ -726,6 +726,30 @@
         async function exportToExcel() {
             if (!cachedDashboardData || !cachedDashboardData.data) {
                 alert("Chưa có dữ liệu thống kê để xuất!");
+                return;
+            }
+
+            // The workbook is generated server-side and stored as a public Blob URL.
+            // This keeps the export available in Vercel's stateless PHP runtime.
+            const exportToken = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+            try {
+                const exportResponse = await fetch('/QLNCKH/api/export-excel', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${exportToken || ''}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(cachedDashboardData)
+                });
+                const exportResult = await exportResponse.json();
+                if (!exportResponse.ok || exportResult.status !== 'success' || !exportResult.url) {
+                    throw new Error(exportResult.message || 'Không thể kết xuất Excel.');
+                }
+                window.location.assign(exportResult.url);
+                return;
+            } catch (error) {
+                console.error('Lỗi xuất Excel phía máy chủ:', error);
+                alert(error.message || 'Không thể kết xuất Excel.');
                 return;
             }
 

@@ -8,6 +8,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
 
 if (!isset($pdo)) {
     http_response_code(500);
@@ -29,24 +30,11 @@ $avatarUrl = null;
 
 // Xử lý upload ảnh đại diện nếu có
 if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
-    $fileTmpPath = $_FILES['avatar']['tmp_name'];
     $fileExtension = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
     if (in_array($fileExtension, $allowedExtensions)) {
-        $newFileName = 'avatar_' . $userId . '_' . time() . '.' . $fileExtension;
-        $uploadDir = __DIR__ . '/../../asset/img/upload/avatar/';
-
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $destPath = $uploadDir . $newFileName;
-
-        if (move_uploaded_file($fileTmpPath, $destPath)) {
-            // Đường dẫn lưu tương đối chuẩn cho hệ thống
-            $avatarUrl = 'asset/img/upload/avatar/' . $newFileName;
-        }
+        $avatarUrl = storeUploadedFile($_FILES['avatar'], 'avatars/' . $userId, $allowedExtensions);
     } else {
         http_response_code(400);
         echo json_encode(["status" => "error", "message" => "Định dạng file ảnh không được hỗ trợ!"]);
@@ -77,7 +65,7 @@ try {
         "status"    => "success",
         "message"   => "Cập nhật hồ sơ thành công!",
         "name"      => $name,
-        "avatarUrl" => $avatarUrl ? '../' . $avatarUrl : null
+        "avatarUrl" => $avatarUrl
     ], JSON_UNESCAPED_UNICODE);
 } catch (PDOException $e) {
     http_response_code(500);

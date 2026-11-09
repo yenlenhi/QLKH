@@ -432,7 +432,7 @@
     <script src="../asset/script/bootstrap5.js"></script>
     <script src="../asset/script/sidebar.js"></script>
     <script>
-        const API_URL = '../index_api.php';
+        const API_URL = '/QLNCKH/index_api.php';
         const API_GET_USERS = `${API_URL}?detect=get_users`;
         const API_GET_STATS = `${API_URL}?detect=user_project_stats`;
         const API_UPDATE_INFO = `${API_URL}?detect=update_user_info`;

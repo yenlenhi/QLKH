@@ -7,6 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 // Nhúng middleware xác thực JWT (Sẽ tự động kiểm tra Token và exit nếu lỗi)
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['status' => 'error', 'message' => 'Phương thức không hợp lệ.']);
@@ -34,26 +35,16 @@ try {
     if (!is_array($existing_files)) $existing_files = [];
 
     // Xử lý upload thêm file mới
-    $upload_dir = '../../asset/file/guides/';
-    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
-
     if (isset($_FILES['attachments']) && is_array($_FILES['attachments']['name'])) {
         $file_count = count($_FILES['attachments']['name']);
         for ($i = 0; $i < $file_count; $i++) {
             if ($_FILES['attachments']['error'][$i] === UPLOAD_ERR_OK) {
-                $tmp_name = $_FILES['attachments']['tmp_name'][$i];
                 $original_name = basename($_FILES['attachments']['name'][$i]);
-                $file_ext = pathinfo($original_name, PATHINFO_EXTENSION);
-                
-                $new_filename = time() . '_' . uniqid() . '.' . $file_ext;
-                $target_path = $upload_dir . $new_filename;
-
-                if (move_uploaded_file($tmp_name, $target_path)) {
-                    $existing_files[] = [
-                        'original_name' => $original_name,
-                        'file_path' => 'asset/file/guides/' . $new_filename
-                    ];
-                }
+                $file = ['name' => $_FILES['attachments']['name'][$i], 'tmp_name' => $_FILES['attachments']['tmp_name'][$i], 'error' => $_FILES['attachments']['error'][$i]];
+                $existing_files[] = [
+                    'original_name' => $original_name,
+                    'file_path' => storeUploadedFile($file, 'guides'),
+                ];
             }
         }
     }

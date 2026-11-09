@@ -182,7 +182,7 @@
     <script src="../asset/script/bootstrap5.js"></script>
     <script src="../asset/script/sidebar.js"></script>
     <script>
-        const API_URL = '../index_api.php';
+        const API_URL = '/QLNCKH/index_api.php';
         let globalProjects = [];
         let filteredProjects = [];
         let deleteTargetId = null;

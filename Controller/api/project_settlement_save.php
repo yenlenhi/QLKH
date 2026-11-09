@@ -6,6 +6,7 @@ if (!defined('ALLOW_ACCESS')) {
 
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/Notification.php';
 
 $project_id        = isset($_POST['project_id']) ? intval($_POST['project_id']) : 0;
 $settlement_budget = isset($_POST['settlement_budget']) ? floatval($_POST['settlement_budget']) : 0;
@@ -32,16 +33,15 @@ try {
     $targetUserId = $proj ? intval($proj['project_user_action_id'] ?: $proj['user_id']) : 0;
     if ($targetUserId > 0) {
         $formattedBudget = number_format($settlement_budget, 0, ',', '.') . ' VNĐ';
-        $stmtNoti = $pdo->prepare("INSERT INTO tbl_notifications (user_id, project_id, title, content, type, is_read, created_at) VALUES (?, ?, ?, ?, 'INFO', 0, NOW())");
-        $stmtNoti->execute([
-            $targetUserId,
-            $project_id,
+        $notificationId = createNotification($pdo, $targetUserId, $project_id,
             "Đã chốt tổng quyết toán [{$proj['project_code']}]",
-            "Tổng kinh phí quyết toán thực tế của đề tài \"{$proj['project_name']}\" đã được phê duyệt ở mức: $formattedBudget."
-        ]);
+            "Tổng kinh phí quyết toán thực tế của đề tài \"{$proj['project_name']}\" đã được phê duyệt ở mức: $formattedBudget.", 'INFO');
     }
 
     $pdo->commit();
+    if (isset($notificationId)) {
+        publishNotificationSafely($targetUserId, $notificationId, $project_id, "Đã chốt tổng quyết toán [{$proj['project_code']}]", 'INFO');
+    }
 
     echo json_encode([
         "status" => "success",

@@ -1,7 +1,9 @@
 <?php
 class JwtHelper {
-    // Khóa bí mật dùng để ký token (Hãy đổi thành một chuỗi ngẫu nhiên dài hơn)
-    private static $secret_key = 'TruongDaiHocAnNinhNhanDan_Secret_Key_2026';
+    private static function secretKey() {
+        require_once __DIR__ . '/AppConfig.php';
+        return requireAppEnv('JWT_SECRET');
+    }
 
     // Tạo JWT Token
     public static function generate_jwt($payload, $exp_seconds = 86400) { // Mặc định hết hạn sau 24h
@@ -15,7 +17,7 @@ class JwtHelper {
         $base64UrlHeader = self::base64UrlEncode($header);
         $base64UrlPayload = self::base64UrlEncode($payload);
 
-        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::$secret_key, true);
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::secretKey(), true);
         $base64UrlSignature = self::base64UrlEncode($signature);
 
         return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
@@ -35,7 +37,7 @@ class JwtHelper {
         // Kiểm tra chữ ký
         $base64UrlHeader = self::base64UrlEncode($header);
         $base64UrlPayload = self::base64UrlEncode($payload);
-        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::$secret_key, true);
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::secretKey(), true);
         $base64UrlSignature = self::base64UrlEncode($signature);
 
         if ($base64UrlSignature !== $signatureProvided) {

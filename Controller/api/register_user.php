@@ -116,6 +116,7 @@ try {
     $insertStmt = $pdo->prepare("
         INSERT INTO tbl_user (username, password, type_user, unit_id, can_grant_permission, status) 
         VALUES (:username, :password, :type_user, :unit_id, :can_grant_permission, 1)
+        RETURNING user_id
     ");
 
     $insertStmt->execute([
@@ -126,7 +127,7 @@ try {
         'can_grant_permission' => $canGrantPermission
     ]);
 
-    $newUserId = $pdo->lastInsertId();
+    $newUserId = (int) $insertStmt->fetchColumn();
 
     // --- BỔ SUNG GHI LOG ---
     require_once __DIR__ . '/../../Model/function.php';

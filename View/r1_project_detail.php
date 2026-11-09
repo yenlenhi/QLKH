@@ -645,7 +645,7 @@
     <script src="../asset/script/mammoth.js"></script>
     <script src="../asset/script/sidebar.js"></script>
     <script>
-        const API_URL = '../index_api.php';
+        const API_URL = '/QLNCKH/index_api.php';
         let projectFiles = [];
         let currentProjectId = 0;
         let currentProjectCode = '';

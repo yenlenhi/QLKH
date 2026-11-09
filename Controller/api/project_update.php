@@ -11,6 +11,8 @@ header("Access-Control-Allow-Methods: POST");
 
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
+require_once __DIR__ . '/../../Model/Notification.php';
 
 // Hỗ trợ đọc cả POST Form-Data và JSON Body payload
 $rawInput = json_decode(file_get_contents('php://input'), true);
@@ -164,10 +166,7 @@ try {
                 $stmtGetFile->execute([$fidInt, $project_id]);
                 $fRow = $stmtGetFile->fetch(PDO::FETCH_ASSOC);
                 if ($fRow && !empty($fRow['file_path'])) {
-                    $physPath = __DIR__ . '/../../' . $fRow['file_path'];
-                    if (file_exists($physPath)) {
-                        @unlink($physPath);
-                    }
+                    deleteFromBlob($fRow['file_path']);
                 }
                 $stmtDelFile->execute([$fidInt, $project_id]);
             }
@@ -176,11 +175,6 @@ try {
 
     // 5. Lưu các file mới tải lên (nếu có từ FormData $_FILES)
     if (isset($_FILES['files']) && !empty($_FILES['files']['name'][0])) {
-        $uploadDir = __DIR__ . '/../../asset/file/project/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
         $sqlFile = "INSERT INTO tbl_project_file (project_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)";
         $stmtFile = $pdo->prepare($sqlFile);
 
@@ -190,13 +184,8 @@ try {
                 $originalName = basename($_FILES['files']['name'][$i]);
                 $fileSize = $_FILES['files']['size'][$i];
 
-                $uniqueFileName = time() . '_' . mt_rand(1000, 9999) . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $originalName);
-                $destination = $uploadDir . $uniqueFileName;
-                $relativePath = 'asset/file/project/' . $uniqueFileName;
-
-                if (move_uploaded_file($_FILES['files']['tmp_name'][$i], $destination)) {
-                    $stmtFile->execute([$project_id, $originalName, $relativePath, $fileSize]);
-                }
+                $file = ['name' => $_FILES['files']['name'][$i], 'tmp_name' => $_FILES['files']['tmp_name'][$i], 'error' => $_FILES['files']['error'][$i]];
+                $stmtFile->execute([$project_id, $originalName, storeUploadedFile($file, 'projects/' . $project_id), $fileSize]);
             }
         }
     }
@@ -226,8 +215,7 @@ try {
         }
 
         if (!empty($notiTitle)) {
-            $stmtNoti = $pdo->prepare("INSERT INTO tbl_notifications (user_id, project_id, title, content, type, is_read, created_at) VALUES (?, ?, ?, ?, ?, 0, NOW())");
-            $stmtNoti->execute([$targetUserId, $project_id, $notiTitle, $notiContent, $notiType]);
+            $notificationId = createNotification($pdo, $targetUserId, $project_id, $notiTitle, $notiContent, $notiType);
         }
     }
 
@@ -266,6 +254,9 @@ try {
     }
 
     $pdo->commit();
+    if (isset($notificationId)) {
+        publishNotificationSafely($targetUserId, $notificationId, $project_id, $notiTitle, $notiType);
+    }
     http_response_code(200);
     echo json_encode([
         "status" => "success",

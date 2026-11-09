@@ -15,6 +15,7 @@ header("Access-Control-Allow-Methods: POST");
 // 1. Nhúng middleware xác thực và kết nối CSDL
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/Notification.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -110,20 +111,8 @@ try {
         exit();
     }
 
-    // 6. Ghi thông báo vào bảng tbl_notifications
-    $sql = "INSERT INTO tbl_notifications (user_id, project_id, title, content, type, is_read, created_at)
-            VALUES (:user_id, :project_id, :title, :content, :type, 0, NOW())";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':user_id'    => $targetUserId,
-        ':project_id' => $projectId,
-        ':title'      => $title,
-        ':content'    => $content,
-        ':type'       => $type
-    ]);
-
-    $newId = $pdo->lastInsertId();
+    $newId = createNotification($pdo, $targetUserId, $projectId, $title, $content, $type);
+    publishNotificationSafely($targetUserId, $newId, $projectId, $title, $type);
 
     http_response_code(200);
     echo json_encode([

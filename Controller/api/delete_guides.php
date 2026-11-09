@@ -9,6 +9,7 @@ header('Content-Type: application/json; charset=utf-8');
 // require_once '../../Model/db_connect.php';
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'DELETE') {
     echo json_encode(['status' => 'error', 'message' => 'Phương thức không hợp lệ.']);
@@ -32,10 +33,7 @@ try {
         $files = json_decode($guide['file_guides'], true);
         if (is_array($files)) {
             foreach ($files as $file) {
-                $filePath = '../../' . $file['file_path'];
-                if (file_exists($filePath)) {
-                    @unlink($filePath);
-                }
+                deleteFromBlob($file['file_path'] ?? null);
             }
         }
     }

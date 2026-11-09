@@ -285,30 +285,19 @@ try {
                 throw new Exception("Dung lượng file logo không được vượt quá 5MB.");
             }
 
-            $uploadDir = __DIR__ . '/../../asset/img/upload/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-
-            $newFileName = 'school_logo_' . time() . '.' . $ext;
-            $destination = $uploadDir . $newFileName;
-
-            if (move_uploaded_file($file['tmp_name'], $destination)) {
-                $currentLogo = 'asset/img/upload/' . $newFileName;
-            } else {
-                throw new Exception("Không thể lưu file logo tải lên máy chủ.");
-            }
+            require_once __DIR__ . '/../../Model/BlobStorage.php';
+            $currentLogo = storeUploadedFile($file, 'system/logo', $allowedExts);
         }
 
         // Lưu vào CSDL
         $stmtSave = $pdo->prepare("
             INSERT INTO tbl_system_setting (id, university_name, university_short_name, system_title, logo_path)
             VALUES (1, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE 
-                university_name = VALUES(university_name),
-                university_short_name = VALUES(university_short_name),
-                system_title = VALUES(system_title),
-                logo_path = VALUES(logo_path)
+            ON CONFLICT (id) DO UPDATE SET
+                university_name = EXCLUDED.university_name,
+                university_short_name = EXCLUDED.university_short_name,
+                system_title = EXCLUDED.system_title,
+                logo_path = EXCLUDED.logo_path
         ");
         $stmtSave->execute([$uniName, $shortName, $systemTitle, $currentLogo]);
 

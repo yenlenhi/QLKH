@@ -15,7 +15,7 @@ if (!isset($pdo)) {
 
 try {
     $sql = "SELECT l.log_id, l.action_type, l.target_object, l.object_id, l.description, l.ip_address, 
-                   DATE_FORMAT(l.created_at, '%d/%m/%Y %H:%i:%s') AS created_at,
+                   TO_CHAR(l.created_at, 'DD/MM/YYYY HH24:MI:SS') AS created_at,
                    u.name AS cb_name, u.username AS cb_username
             FROM tbl_activity_logs l
             JOIN tbl_user u ON l.user_id = u.user_id

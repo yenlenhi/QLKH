@@ -79,7 +79,7 @@ try {
     // -------------------------------------------------------------
     // 3. GIỮ NGUYÊN CẤU TRÚC GỐC 2: THỐNG KÊ THEO LOẠI ĐỀ TÀI (TYPE_STATS)
     // -------------------------------------------------------------
-    $hasSubSys = $pdo->query("SHOW COLUMNS FROM tbl_project LIKE 'sub_system_id'")->rowCount() > 0;
+    $hasSubSys = (bool) $pdo->query("SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'tbl_project' AND column_name = 'sub_system_id')")->fetchColumn();
 
     if ($hasSubSys) {
         $sqlTypes = "SELECT 
@@ -161,27 +161,27 @@ try {
     $extraParams = $unitParams;
 
     if ($gran === 'quy') {
-        $timeExpr = "CONCAT('Quý ', QUARTER($dateCol), '/', YEAR($dateCol))";
-        $extraWhere .= " AND YEAR($dateCol) = ?";
+        $timeExpr = "CONCAT('Quý ', EXTRACT(QUARTER FROM $dateCol), '/', EXTRACT(YEAR FROM $dateCol))";
+        $extraWhere .= " AND EXTRACT(YEAR FROM $dateCol) = ?";
         $extraParams[] = $filterYear;
     } elseif ($gran === 'khoang_nam') {
-        $timeExpr = "YEAR($dateCol)";
+        $timeExpr = "EXTRACT(YEAR FROM $dateCol)";
         if ($fromYear > 0 && $toYear > 0) {
-            $extraWhere .= " AND YEAR($dateCol) BETWEEN ? AND ?";
+            $extraWhere .= " AND EXTRACT(YEAR FROM $dateCol) BETWEEN ? AND ?";
             $extraParams[] = min($fromYear, $toYear);
             $extraParams[] = max($fromYear, $toYear);
         }
     } elseif ($gran === 'trong_nam') {
-        $timeExpr = "CONCAT('Tháng ', MONTH($dateCol))";
-        $extraWhere .= " AND YEAR($dateCol) = ?";
+        $timeExpr = "CONCAT('Tháng ', EXTRACT(MONTH FROM $dateCol))";
+        $extraWhere .= " AND EXTRACT(YEAR FROM $dateCol) = ?";
         $extraParams[] = $filterYear;
     } else {
         // Mặc định: 'nam'
-        $timeExpr = "YEAR($dateCol)";
+        $timeExpr = "EXTRACT(YEAR FROM $dateCol)";
     }
 
     // LẤY TẤT CẢ CÁC NĂM THỰC TẾ TRONG CSDL ĐỂ TỰ ĐỘNG SINH OPTION VÀ MA TRẬN
-    $stmtYears = $pdo->query("SELECT DISTINCT YEAR($dateCol) AS y FROM tbl_project p WHERE p.is_deleted = 0 AND $dateCol IS NOT NULL ORDER BY y ASC");
+    $stmtYears = $pdo->query("SELECT DISTINCT EXTRACT(YEAR FROM $dateCol)::int AS y FROM tbl_project p WHERE p.is_deleted = 0 AND $dateCol IS NOT NULL ORDER BY y ASC");
     $dbYears = $stmtYears->fetchAll(PDO::FETCH_COLUMN);
 
     $currentYear = intval(date('Y'));
@@ -234,13 +234,13 @@ try {
     // Truy vấn tổng hợp theo thời gian và sub_system_id
     $sqlTimeline = "SELECT 
                         $timeExpr AS period_label,
-                        YEAR($dateCol) AS yr,
+                        EXTRACT(YEAR FROM $dateCol)::int AS yr,
                         p.sub_system_id,
                         COUNT(p.project_id) AS total_count,
                         COALESCE(SUM(COALESCE(p.settlement_budget, p.estimated_budget, 0)), 0) AS total_budget
                     FROM tbl_project p
                     WHERE $extraWhere
-                    GROUP BY $timeExpr, YEAR($dateCol), p.sub_system_id
+                    GROUP BY $timeExpr, EXTRACT(YEAR FROM $dateCol), p.sub_system_id
                     ORDER BY yr ASC, period_label ASC";
     $stmtTime = $pdo->prepare($sqlTimeline);
     $stmtTime->execute($extraParams);

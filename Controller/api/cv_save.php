@@ -187,7 +187,7 @@ try {
                     education_history, work_history, published_articles,
                     patents, applied_works, projects_participated, awards,
                     other_achievements
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING cv_id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $user_id, $reg_role, $academic_rank, $academic_rank_year,
@@ -199,7 +199,7 @@ try {
             $patents, $applied_works, $projects_participated, $awards,
             $other_achievements
         ]);
-        $cv_id = $pdo->lastInsertId();
+        $cv_id = (int) $stmt->fetchColumn();
     }
 
     // Đồng bộ lại họ tên vào tbl_user

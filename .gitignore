@@ -1,0 +1,8 @@
+db_qlnckh.sql
+.env
+.env.*
+!.env.example
+.playwright-cli/
+
+.vercel
+__pycache__/

@@ -67,7 +67,7 @@
     <script src="../asset/script/sidebar.js"></script>
 
     <script>
-        const API_URL = '../index_api.php';
+        const API_URL = '/QLNCKH/index_api.php';
 
         document.addEventListener("DOMContentLoaded", function() {
             fetchSystemLogs();

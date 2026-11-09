@@ -30,8 +30,8 @@ if (empty($username) || empty($password)) {
 }
 
 try {
-    // DÙNG BINARY ĐỂ PHÂN BIỆT CHÍNH XÁC CHỮ HOA VÀ CHỮ THƯỜNG
-    $stmt = $pdo->prepare("SELECT user_id, username, password, status, can_grant_permission FROM tbl_user WHERE BINARY username = :username LIMIT 1");
+    // PostgreSQL string comparison is case-sensitive by default.
+    $stmt = $pdo->prepare("SELECT user_id, username, password, status, can_grant_permission FROM tbl_user WHERE username = :username LIMIT 1");
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch();
 

@@ -106,6 +106,10 @@ switch ($detect) {
             require_once __DIR__ . '/Controller/api/get_users.php';
             break;
         }
+    case 'get_user': {
+            require_once __DIR__ . '/Controller/api/get_users.php';
+            break;
+        }
         // case 'login': {
         //     require_once __DIR__ . '/Controller/api/login.php';
         //     break;
@@ -127,26 +131,8 @@ switch ($detect) {
             require_once __DIR__ . '/Controller/api/register_user.php';
             break;
         }
-    case 'stream_notifications': {
-            // 1. Giải phóng Session Lock ngay lập tức để không chặn các request/trang khác trên Local
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_write_close();
-            }
-
-            // 2. Chuyển header sang dạng Stream (ghi đè header JSON ở đầu file index_api.php)
-            header("Content-Type: text/event-stream");
-            header("Cache-Control: no-cache");
-            header("Connection: keep-alive");
-            header("X-Accel-Buffering: no");
-
-            // 3. Tắt bộ đệm đầu ra của Apache/PHP
-            @ini_set('zlib.output_compression', '0');
-            @ini_set('implicit_flush', '1');
-            while (ob_get_level() > 0) {
-                ob_end_flush();
-            }
-            flush();
-            require_once __DIR__ . '/Controller/api/stream_notifications.php';
+    case 'ably_token': {
+            require_once __DIR__ . '/Controller/api/ably_token.php';
             break;
         }
     case 'update_guides': {
@@ -163,10 +149,6 @@ switch ($detect) {
         }
     case 'update_user_status': {
             require_once __DIR__ . '/Controller/api/update_user_status.php';
-            break;
-        }
-    case 'update_report': {
-            require_once __DIR__ . '/Controller/api/update_report.php';
             break;
         }
         // Quản lý dự án

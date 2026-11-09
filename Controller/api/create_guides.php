@@ -9,6 +9,7 @@ header('Content-Type: application/json; charset=utf-8');
 // require_once '../../Model/db_connect.php';
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['status' => 'error', 'message' => 'Phương thức không hợp lệ.']);
@@ -26,30 +27,21 @@ if (empty($title) || empty($content)) {
 }
 
 $uploaded_files = [];
-$upload_dir = '../../asset/file/guides/';
-
-if (!is_dir($upload_dir)) {
-    mkdir($upload_dir, 0777, true);
-}
-
 // Xử lý Upload nhiều file
 if (isset($_FILES['attachments']) && is_array($_FILES['attachments']['name'])) {
     $file_count = count($_FILES['attachments']['name']);
     for ($i = 0; $i < $file_count; $i++) {
         if ($_FILES['attachments']['error'][$i] === UPLOAD_ERR_OK) {
-            $tmp_name = $_FILES['attachments']['tmp_name'][$i];
             $original_name = basename($_FILES['attachments']['name'][$i]);
-            $file_ext = pathinfo($original_name, PATHINFO_EXTENSION);
-            
-            $new_filename = time() . '_' . uniqid() . '.' . $file_ext;
-            $target_path = $upload_dir . $new_filename;
-
-            if (move_uploaded_file($tmp_name, $target_path)) {
-                $uploaded_files[] = [
-                    'original_name' => $original_name,
-                    'file_path' => 'asset/file/guides/' . $new_filename
-                ];
-            }
+            $file = [
+                'name' => $_FILES['attachments']['name'][$i],
+                'tmp_name' => $_FILES['attachments']['tmp_name'][$i],
+                'error' => $_FILES['attachments']['error'][$i],
+            ];
+            $uploaded_files[] = [
+                'original_name' => $original_name,
+                'file_path' => storeUploadedFile($file, 'guides'),
+            ];
         }
     }
 }
@@ -58,7 +50,7 @@ try {
     $file_guides_json = json_encode($uploaded_files, JSON_UNESCAPED_UNICODE);
 
     $sql = "INSERT INTO tbl_guides (title, content, hotline, number_phone, file_guides) 
-            VALUES (:title, :content, :hotline, :number_phone, :file_guides)";
+            VALUES (:title, :content, :hotline, :number_phone, :file_guides) RETURNING id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':title' => $title,
@@ -68,7 +60,7 @@ try {
         ':file_guides' => $file_guides_json
     ]);
 
-    $newGuideId = $pdo->lastInsertId(); // <-- BỔ SUNG DÒNG NÀY ĐỂ LẤY ID VỪA TẠO
+    $newGuideId = $stmt->fetchColumn();
 
     require_once __DIR__ . '/../../Model/function.php';
     // --- GHI LOG HOẠT ĐỘNG ---

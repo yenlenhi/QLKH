@@ -7,6 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 // Nhúng middleware xác thực JWT (Sẽ tự động kiểm tra Token và exit nếu lỗi)
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['status' => 'error', 'message' => 'Phương thức không hợp lệ.']);
@@ -43,10 +44,7 @@ try {
     // Lọc bỏ file cần xóa và thực hiện xóa file trên đĩa
     foreach ($files as $file) {
         if (($file['file_path'] ?? '') === $file_path) {
-            $physical_path = '../../' . $file_path;
-            if (file_exists($physical_path)) {
-                @unlink($physical_path);
-            }
+            deleteFromBlob($file_path);
             $is_deleted = true;
         } else {
             $updated_files[] = $file;

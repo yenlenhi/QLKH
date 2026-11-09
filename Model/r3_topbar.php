@@ -158,12 +158,13 @@
     </div>
 </header>
 
+<script src="https://cdn.ably.com/lib/ably.min-2.js" defer></script>
 <script>
     (function() {
         const API_URL = '/QLNCKH/index_api.php';
         const CACHE_PROFILE_KEY = 'cached_current_user_profile';
         const CACHE_UNREAD_KEY = 'cached_unread_notifications_count';
-        let sseReconnectTimer = null;
+        let realtimeClient = null;
 
         if (typeof window.fetchWithAuth !== 'function') {
             window.fetchWithAuth = async function(url, options = {}) {
@@ -350,60 +351,29 @@
             } catch (err) {}
         };
 
-        function initRealtimeSSE() {
-            if (window.topbarEventSource) {
-                window.topbarEventSource.close();
-                window.topbarEventSource = null;
-            }
+        function initRealtimeNotifications() {
+            if (!token || typeof Ably === 'undefined' || realtimeClient) return;
 
-            const sseUrl = `${API_URL}?detect=stream_notifications&token=${encodeURIComponent(token)}`;
-            window.topbarEventSource = new EventSource(sseUrl);
-
-            window.topbarEventSource.onmessage = function(event) {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (typeof data.unread_count !== 'undefined') {
-                        sessionStorage.setItem(CACHE_UNREAD_KEY, data.unread_count);
-                        updateNotificationBadgeUI(data.unread_count);
-                        loadNotifications();
-                    }
-                } catch (e) {}
-            };
-
-            window.topbarEventSource.onerror = function() {
-                if (window.topbarEventSource) {
-                    window.topbarEventSource.close();
-                    window.topbarEventSource = null;
-                }
-                if (!sseReconnectTimer) {
-                    sseReconnectTimer = setTimeout(() => {
-                        sseReconnectTimer = null;
-                        if (document.visibilityState === 'visible') {
-                            initRealtimeSSE();
-                        }
-                    }, 10000);
-                }
-            };
+            realtimeClient = new Ably.Realtime({
+                authUrl: `${API_URL}?detect=ably_token`,
+                authHeaders: { Authorization: `Bearer ${token}` }
+            });
+            const channel = realtimeClient.channels.get(`notifications:user:${globalCurrentUserId}`);
+            channel.subscribe('notification', () => {
+                loadNotifications();
+            });
         }
 
         window.addEventListener('beforeunload', function() {
-            if (window.topbarEventSource) {
-                window.topbarEventSource.close();
-                window.topbarEventSource = null;
-            }
-            if (sseReconnectTimer) {
-                clearTimeout(sseReconnectTimer);
+            if (realtimeClient) {
+                realtimeClient.close();
+                realtimeClient = null;
             }
         });
 
         document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                if (window.topbarEventSource) {
-                    window.topbarEventSource.close();
-                    window.topbarEventSource = null;
-                }
-            } else {
-                initRealtimeSSE();
+            if (!document.hidden) {
+                initRealtimeNotifications();
             }
         });
 
@@ -542,7 +512,7 @@
             setTimeout(() => {
                 syncUserProfile();
                 loadNotifications();
-                initRealtimeSSE();
+                initRealtimeNotifications();
             }, 500);
         });
     })();

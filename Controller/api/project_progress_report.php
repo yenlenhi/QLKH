@@ -11,6 +11,7 @@ header("Access-Control-Allow-Methods: POST");
 
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
 
 $project_id = isset($_POST['project_id']) ? intval($_POST['project_id']) : 0;
 $report_phase = isset($_POST['report_phase']) ? intval($_POST['report_phase']) : 1; // Đợt báo cáo (1, 2, 3, 4 tương ứng 3, 6, 9, 12 tháng)
@@ -44,22 +45,11 @@ try {
 
     // 2. Lưu file báo cáo tiến độ vào bảng tbl_project_file (có thể gắn thêm phân loại nếu muốn, ở đây lưu chung vào bảng file đề tài)
     if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/../../asset/file/project/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
         $originalName = basename($_FILES['report_file']['name']);
         $fileSize = $_FILES['report_file']['size'];
-        $uniqueFileName = time() . '_report_dot_' . $report_phase . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $originalName);
-        $destination = $uploadDir . $uniqueFileName;
-        $relativePath = 'asset/file/project/' . $uniqueFileName;
-
-        if (move_uploaded_file($_FILES['report_file']['tmp_name'], $destination)) {
-            $sqlFile = "INSERT INTO tbl_project_file (project_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)";
-            $stmtFile = $pdo->prepare($sqlFile);
-            $stmtFile->execute([$project_id, "[Báo cáo Đợt $report_phase] " . $originalName, $relativePath, $fileSize]);
-        }
+        $sqlFile = "INSERT INTO tbl_project_file (project_id, file_name, file_path, file_size) VALUES (?, ?, ?, ?)";
+        $stmtFile = $pdo->prepare($sqlFile);
+        $stmtFile->execute([$project_id, "[Báo cáo Đợt $report_phase] " . $originalName, storeUploadedFile($_FILES['report_file'], 'reports/' . $project_id), $fileSize]);
     }
 
     

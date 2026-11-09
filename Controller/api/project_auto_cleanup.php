@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../Model/db_connect.php'; // Điều chỉnh đườ
 
 try {
     // Câu lệnh quét và xóa vĩnh viễn các đề tài ở thùng rác (is_deleted = 1) quá 30 ngày
-    $sql = "DELETE FROM tbl_project WHERE is_deleted = 1 AND deleted_at < (NOW() - INTERVAL 30 DAY)";
+    $sql = "DELETE FROM tbl_project WHERE is_deleted = 1 AND deleted_at < (NOW() - INTERVAL '30 days')";
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
     $deletedCount = $stmt->rowCount();

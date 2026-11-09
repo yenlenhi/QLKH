@@ -45,7 +45,7 @@ try {
         :project_code, :register_type_id, :project_name, :user_id, 
         :project_user_action_id, :sub_system_id, :level_id, 
         :security_level_id, :estimated_budget, :duration_months, :registration_deadline, 'pending', NOW()
-    )";
+    ) RETURNING project_id";
     $stmtProj = $pdo->prepare($sqlProject);
 
     $sqlMember = "INSERT INTO tbl_project_member (project_id, full_name, platoon, is_leader, created_at) 
@@ -147,7 +147,7 @@ try {
             ':registration_deadline'  => $deadline
         ]);
 
-        $newProjectId = $pdo->lastInsertId();
+        $newProjectId = (int) $stmtProj->fetchColumn();
 
         // Thêm Chủ nhiệm nếu có
         $leaderName = trim($p['leader_name'] ?? '');

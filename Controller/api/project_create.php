@@ -12,6 +12,8 @@ header("Access-Control-Allow-Methods: POST");
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
 require_once __DIR__ . '/../../Model/function.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
+require_once __DIR__ . '/../../Model/Notification.php';
 
 $user_id = isset($currentUser['user_id']) ? intval($currentUser['user_id']) : 0;
 if ($user_id <= 0) {
@@ -61,8 +63,8 @@ try {
                         ?, ?, ?, ?, 
                         ?, ?, ?, ?, 
                         ?, ?, ?, 
-                        DATE_ADD(NOW(), INTERVAL 30 DAY), 'pending'
-                   )";
+                        NOW() + INTERVAL '30 days', 'pending'
+                   ) RETURNING project_id";
     $stmtProject = $pdo->prepare($sqlProject);
     $stmtProject->execute([
         $user_id,
@@ -78,7 +80,7 @@ try {
         $report_phases
     ]);
 
-    $project_id = intval($pdo->lastInsertId());
+    $project_id = (int) $stmtProject->fetchColumn();
 
     // 2. Thêm danh sách thành viên (Gắn user_id cho Chủ nhiệm)
     // 2. Thêm danh sách thành viên
@@ -119,13 +121,7 @@ try {
     }
 
     // 3. Xử lý lưu file đính kèm
-    $uploadDir = __DIR__ . '/../../asset/file/project/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-
-    $colsFile = $pdo->query("SHOW COLUMNS FROM tbl_project_file")->fetchAll(PDO::FETCH_COLUMN);
-    $hasFileCategory = in_array('file_category', $colsFile);
+    $hasFileCategory = (bool) $pdo->query("SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'tbl_project_file' AND column_name = 'file_category')")->fetchColumn();
 
     if ($hasFileCategory) {
         $sqlFile = "INSERT INTO tbl_project_file (project_id, file_category, file_name, file_path, file_size) VALUES (?, ?, ?, ?, ?)";
@@ -147,16 +143,11 @@ try {
         if (isset($_FILES[$catKey]) && $_FILES[$catKey]['error'] === UPLOAD_ERR_OK) {
             $origName = basename($_FILES[$catKey]['name']);
             $fSize = $_FILES[$catKey]['size'];
-            $uniqueName = time() . '_' . $catKey . '_' . mt_rand(1000, 9999) . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $origName);
-            $destination = $uploadDir . $uniqueName;
-            $relativePath = 'asset/file/project/' . $uniqueName;
-
-            if (move_uploaded_file($_FILES[$catKey]['tmp_name'], $destination)) {
-                if ($hasFileCategory) {
-                    $stmtFile->execute([$project_id, $catKey, $origName, $relativePath, $fSize]);
-                } else {
-                    $stmtFile->execute([$project_id, $origName, $relativePath, $fSize]);
-                }
+            $blobUrl = storeUploadedFile($_FILES[$catKey], 'projects/' . $project_id);
+            if ($hasFileCategory) {
+                $stmtFile->execute([$project_id, $catKey, $origName, $blobUrl, $fSize]);
+            } else {
+                $stmtFile->execute([$project_id, $origName, $blobUrl, $fSize]);
             }
         }
     }
@@ -168,16 +159,12 @@ try {
             if ($_FILES['files_khac']['error'][$i] === UPLOAD_ERR_OK) {
                 $origName = basename($_FILES['files_khac']['name'][$i]);
                 $fSize = $_FILES['files_khac']['size'][$i];
-                $uniqueName = time() . '_khac_' . mt_rand(1000, 9999) . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $origName);
-                $destination = $uploadDir . $uniqueName;
-                $relativePath = 'asset/file/project/' . $uniqueName;
-
-                if (move_uploaded_file($_FILES['files_khac']['tmp_name'][$i], $destination)) {
-                    if ($hasFileCategory) {
-                        $stmtFile->execute([$project_id, 'files_khac', $origName, $relativePath, $fSize]);
-                    } else {
-                        $stmtFile->execute([$project_id, $origName, $relativePath, $fSize]);
-                    }
+                $file = ['name' => $_FILES['files_khac']['name'][$i], 'tmp_name' => $_FILES['files_khac']['tmp_name'][$i], 'error' => $_FILES['files_khac']['error'][$i]];
+                $blobUrl = storeUploadedFile($file, 'projects/' . $project_id);
+                if ($hasFileCategory) {
+                    $stmtFile->execute([$project_id, 'files_khac', $origName, $blobUrl, $fSize]);
+                } else {
+                    $stmtFile->execute([$project_id, $origName, $blobUrl, $fSize]);
                 }
             }
         }
@@ -185,15 +172,9 @@ try {
 
     // 4. Tạo thông báo
     if ($project_user_action_id > 0 && $project_id > 0) {
-        $sqlNoti = "INSERT INTO tbl_notifications (user_id, project_id, title, content, type, is_read, created_at) 
-                    VALUES (?, ?, ?, ?, 'INFO', 0, NOW())";
-        $stmtNoti = $pdo->prepare($sqlNoti);
-        $stmtNoti->execute([
-            $project_user_action_id,
-            $project_id,
+        $notificationId = createNotification($pdo, $project_user_action_id, $project_id,
             "Đề xuất nhiệm vụ mới [$project_code]",
-            "Nhiệm vụ \"$project_name\" đã được nộp đề xuất và đang chờ cấp trên xét duyệt."
-        ]);
+            "Nhiệm vụ \"$project_name\" đã được nộp đề xuất và đang chờ cấp trên xét duyệt.", 'INFO');
     }
 
     // 5. Ghi log hoạt động qua function.php
@@ -202,6 +183,9 @@ try {
     }
 
     $pdo->commit();
+    if (isset($notificationId)) {
+        publishNotificationSafely($project_user_action_id, $notificationId, $project_id, "Đề xuất nhiệm vụ mới [$project_code]", 'INFO');
+    }
 
     // Dọn sạch output buffer để tránh rác ký tự làm vỡ JSON
     if (ob_get_length()) ob_clean();

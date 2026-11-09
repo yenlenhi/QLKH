@@ -1,4 +1,4 @@
-const API_URL = "../index_api.php";
+const API_URL = "/QLNCKH/index_api.php";
 
 let toastInstance = null;
 let confirmModalInstance = null;

@@ -19,6 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/auth_middleware.php';
 require_once __DIR__ . '/../../Model/db_connect.php';
+require_once __DIR__ . '/../../Model/BlobStorage.php';
+require_once __DIR__ . '/../../Model/Notification.php';
 
 $activeUser = isset($auth_user) ? $auth_user : (isset($currentUser) ? $currentUser : []);
 $user_id = isset($activeUser['user_id']) ? intval($activeUser['user_id']) : (isset($activeUser['id']) ? intval($activeUser['id']) : 0);
@@ -49,19 +51,9 @@ try {
     $uploadedFileName = null;
 
     if (isset($_FILES['payment_file']) && $_FILES['payment_file']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/../../asset/file/project/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
         $origName = basename($_FILES['payment_file']['name']);
         $uploadedFileName = $origName;
-        $uniqueName = time() . '_pay_' . mt_rand(1000, 9999) . '_' . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $origName);
-        $destPath = $uploadDir . $uniqueName;
-
-        if (move_uploaded_file($_FILES['payment_file']['tmp_name'], $destPath)) {
-            $uploadedFilePath = 'asset/file/project/' . $uniqueName;
-        }
+        $uploadedFilePath = storeUploadedFile($_FILES['payment_file'], 'payments/' . $project_id);
     }
 
     $pdo->beginTransaction();
@@ -108,8 +100,7 @@ try {
     }
 
     if ($targetUserId > 0) {
-        $stmtNoti = $pdo->prepare("INSERT INTO tbl_notifications (user_id, project_id, title, content, type, is_read, created_at) VALUES (?, ?, ?, ?, 'SUCCESS', 0, NOW())");
-        $stmtNoti->execute([$targetUserId, $project_id, $notiTitle, $notiContent]);
+        $notificationId = createNotification($pdo, $targetUserId, $project_id, $notiTitle, $notiContent, 'SUCCESS');
     }
 
     if (file_exists(__DIR__ . '/../../Model/function.php')) {
@@ -120,6 +111,9 @@ try {
     }
 
     $pdo->commit();
+    if (isset($notificationId)) {
+        publishNotificationSafely($targetUserId, $notificationId, $project_id, $notiTitle, 'SUCCESS');
+    }
     echo json_encode(["status" => "success", "message" => $msg], JSON_UNESCAPED_UNICODE);
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) {
