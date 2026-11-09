@@ -27,4 +27,4 @@ Tài khoản mẫu trong dump: `CB000000` / `123456`.
 
 ## Lưu ý về dump
 
-Dump hiện có 18 bảng. Source còn tham chiếu các bảng `tbl_org_unit`, `tbl_project_task`, `tbl_project_task_assignment`, `tbl_scientific_curriculum_vitae` và `tbl_sub_system_level`, nhưng không có migration/schema tương ứng trong repository. Các chức năng liên quan sẽ cần schema gốc từ tác giả dự án.
+Dump hiện có schema cho quản lý đơn vị và dashboard. Source vẫn còn tham chiếu các bảng `tbl_project_task`, `tbl_project_task_assignment`, `tbl_scientific_curriculum_vitae` và `tbl_sub_system_level`, nhưng không có migration/schema tương ứng trong repository. Các chức năng liên quan sẽ cần schema gốc từ tác giả dự án.

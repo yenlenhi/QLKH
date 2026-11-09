@@ -86,6 +86,18 @@ INSERT INTO `tbl_guides` (`id`, `title`, `content`, `hotline`, `number_phone`, `
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `tbl_org_unit`
+--
+
+CREATE TABLE `tbl_org_unit` (
+  `unit_id` int(11) NOT NULL,
+  `unit_code` varchar(50) NOT NULL,
+  `unit_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `tbl_notifications`
 --
 
@@ -505,6 +517,7 @@ CREATE TABLE `tbl_user` (
   `name` varchar(100) NOT NULL DEFAULT 'Người dùng',
   `avatar` varchar(255) DEFAULT NULL,
   `type_user` varchar(2) NOT NULL,
+  `unit_id` int(11) DEFAULT NULL,
   `can_grant_permission` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` tinyint(1) NOT NULL DEFAULT 1,
@@ -539,6 +552,13 @@ ALTER TABLE `tbl_activity_logs`
 --
 ALTER TABLE `tbl_guides`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Chỉ mục cho bảng `tbl_org_unit`
+--
+ALTER TABLE `tbl_org_unit`
+  ADD PRIMARY KEY (`unit_id`),
+  ADD UNIQUE KEY `unit_code` (`unit_code`);
 
 --
 -- Chỉ mục cho bảng `tbl_notifications`
@@ -672,6 +692,12 @@ ALTER TABLE `tbl_activity_logs`
 --
 ALTER TABLE `tbl_guides`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT cho bảng `tbl_org_unit`
+--
+ALTER TABLE `tbl_org_unit`
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT cho bảng `tbl_notifications`
