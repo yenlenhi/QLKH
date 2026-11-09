@@ -107,7 +107,7 @@
             return;
         }
 
-        const API_URL = '/index_api.php';
+        const API_URL = '/QLNCKH/index_api.php';
 
         try {
             btnSave.disabled = true;
@@ -161,7 +161,7 @@
 
     (function() {
         const CACHE_USER_KEY = 'cached_current_user_info';
-        const API_URL = '/index_api.php';
+        const API_URL = '/QLNCKH/index_api.php';
 
         function updateTopbarUI(name, username) {
             const nameEl = document.getElementById('topbarRealName');

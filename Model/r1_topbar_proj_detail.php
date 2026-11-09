@@ -46,7 +46,7 @@
             }
 
             // 2. Gọi API get_users để lấy dữ liệu chính xác nhất từ CSDL
-            const response = await fetch('/index_api.php?detect=get_users', {
+            const response = await fetch('/QLNCKH/index_api.php?detect=get_users', {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+function renderView(string $view): void
+{
+    $workingDirectory = getcwd();
+    chdir(dirname($view));
+
+    try {
+        require $view;
+    } finally {
+        chdir($workingDirectory);
+    }
+}
+
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 $hasProjectPrefix = false;
 
@@ -71,18 +83,18 @@ $routes = [
 
 if (preg_match('#^/de-tai/(\d+)$#', $path, $matches)) {
     $_GET['id'] = $matches[1];
-    require __DIR__ . '/View/r3_project_detail.php';
+    renderView(__DIR__ . '/View/r3_project_detail.php');
     return true;
 }
 
 if (preg_match('#^/cap-nhat/(\d+)$#', $path, $matches)) {
     $_GET['id'] = $matches[1];
-    require __DIR__ . '/View/r3_project_update.php';
+    renderView(__DIR__ . '/View/r3_project_update.php');
     return true;
 }
 
 if (isset($routes[$path])) {
-    require __DIR__ . '/' . $routes[$path];
+    renderView(__DIR__ . '/' . $routes[$path]);
     return true;
 }
 
