@@ -8,10 +8,14 @@
     "api/index_api.php": {
       "runtime": "vercel-php@0.9.0",
       "includeFiles": "{Controller/**,Model/**,asset/**,index_api.php}"
+      },
+      "api/health.php": {
+        "runtime": "vercel-php@0.9.0"
     }
   },
   "routes": [
     { "src": "/QLNCKH/api/export-excel", "dest": "/api/export_excel.py" },
+      { "src": "/QLNCKH/health", "dest": "/api/health.php" },
     { "src": "/QLNCKH/index_api.php", "dest": "/api/index_api.php" },
     { "src": "/QLNCKH/asset/(.*)", "dest": "/asset/$1" },
     { "src": "/QLNCKH(?:/(.*))?", "dest": "/api/router.php" },
