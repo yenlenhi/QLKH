@@ -27,7 +27,7 @@ try {
         }
 
         // Lấy thông tin đề tài
-        $stmtProj = $pdo->prepare("SELECT project_id, user_id, project_user_action_id, status, report_phases FROM tbl_project WHERE project_id = ? AND is_deleted = 0");
+        $stmtProj = $pdo->prepare("SELECT project_id, user_id, project_user_action_id, status, report_phases FROM tbl_project WHERE project_id = ? AND is_deleted IS FALSE");
         $stmtProj->execute([$projectId]);
         $project = $stmtProj->fetch(PDO::FETCH_ASSOC);
 

@@ -338,7 +338,7 @@ try {
         $icon = trim($input['icon_class'] ?? 'fa-solid fa-circle');
         $perm = trim($input['required_permission'] ?? '');
         $order = intval($input['sort_order'] ?? 0);
-        $active = intval($input['is_active'] ?? 1);
+        $active = filter_var($input['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
         if (empty($name) || empty($link)) {
             throw new Exception("Tên menu và liên kết file không được để trống.");

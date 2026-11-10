@@ -4,3 +4,4 @@ db_qlnckh (1).sql
 .env.*
 .playwright-cli
 LOCAL_SETUP.md
+scripts/*-smoke-payload.json

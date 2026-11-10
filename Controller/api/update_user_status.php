@@ -62,9 +62,9 @@ if ($user_id === $current_user_id && $status === 0) {
 try {
     // Nếu vô hiệu hóa (status = 0), đồng thời xóa current_token để kick phiên đăng nhập ra ngay
     if ($status === 0) {
-        $sql = "UPDATE tbl_user SET status = 0, current_token = NULL WHERE user_id = :user_id";
+        $sql = "UPDATE tbl_user SET status = FALSE, current_token = NULL WHERE user_id = :user_id";
     } else {
-        $sql = "UPDATE tbl_user SET status = 1 WHERE user_id = :user_id";
+        $sql = "UPDATE tbl_user SET status = TRUE WHERE user_id = :user_id";
     }
 
     $stmt = $pdo->prepare($sql);

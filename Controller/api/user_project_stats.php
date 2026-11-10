@@ -22,7 +22,7 @@ try {
                    SUM(CASE WHEN status = 'awaiting_payment' THEN 1 ELSE 0 END) AS awaiting_payment_count,
                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_count
             FROM tbl_project 
-            WHERE is_deleted = 0 AND project_user_action_id IS NOT NULL 
+            WHERE is_deleted IS FALSE AND project_user_action_id IS NOT NULL 
             GROUP BY project_user_action_id";
 
     $stmt = $pdo->prepare($sql);

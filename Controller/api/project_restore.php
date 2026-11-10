@@ -36,8 +36,8 @@ try {
     $pCode = $projInfo['project_code'] ?? "ID: $project_id";
     $pName = $projInfo['project_name'] ?? "";
 
-    // 2. Khôi phục: Đưa is_deleted về 0 và reset deleted_at về NULL
-    $sql = "UPDATE tbl_project SET is_deleted = 0, deleted_at = NULL WHERE project_id = ?";
+    // 2. Khôi phục: Đưa is_deleted về FALSE và reset deleted_at về NULL
+    $sql = "UPDATE tbl_project SET is_deleted = FALSE, deleted_at = NULL WHERE project_id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$project_id]);
 

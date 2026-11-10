@@ -3,6 +3,7 @@ db_qlnckh.sql
 .env.*
 !.env.example
 .playwright-cli/
+scripts/*-smoke-payload.json
 
 .vercel
 __pycache__/

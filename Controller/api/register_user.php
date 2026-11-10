@@ -115,7 +115,7 @@ try {
     // Thêm bản ghi mới vào tbl_user (ĐÃ BỔ SUNG CỘT type_user)
     $insertStmt = $pdo->prepare("
         INSERT INTO tbl_user (username, password, type_user, unit_id, can_grant_permission, status) 
-        VALUES (:username, :password, :type_user, :unit_id, :can_grant_permission, 1)
+        VALUES (:username, :password, :type_user, :unit_id, :can_grant_permission, TRUE)
         RETURNING user_id
     ");
 
@@ -124,7 +124,7 @@ try {
         'password' => $hashedPassword,
         'type_user' => $typeUser,
         'unit_id' => $unitId,
-        'can_grant_permission' => $canGrantPermission
+        'can_grant_permission' => (bool) $canGrantPermission
     ]);
 
     $newUserId = (int) $insertStmt->fetchColumn();

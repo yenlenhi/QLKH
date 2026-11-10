@@ -25,9 +25,9 @@ try {
                 p.project_user_action_id,
                 p.deleted_at,
                 p.created_at,
-                -- Lấy Chủ nhiệm từ tbl_project_member (is_leader = 1), nếu chưa có thì lấy theo p.user_id
+                -- Lấy Chủ nhiệm từ tbl_project_member, nếu chưa có thì lấy theo p.user_id
                 COALESCE(
-                    (SELECT m.full_name FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader = 1 LIMIT 1),
+                    (SELECT m.full_name FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader IS TRUE LIMIT 1),
                     u_owner.name,
                     'Chưa cập nhật'
                 ) AS leader_name,
@@ -38,7 +38,7 @@ try {
             FROM tbl_project p
             LEFT JOIN tbl_user u_owner ON p.user_id = u_owner.user_id
             LEFT JOIN tbl_user u_creator ON p.project_user_action_id = u_creator.user_id
-            WHERE p.is_deleted = 1 OR p.deleted_at IS NOT NULL
+            WHERE p.is_deleted IS TRUE OR p.deleted_at IS NOT NULL
             ORDER BY p.deleted_at DESC";
 
     $stmt = $pdo->prepare($sql);

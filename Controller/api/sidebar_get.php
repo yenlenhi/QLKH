@@ -41,7 +41,7 @@ try {
     $stmtMenu = $pdo->prepare("
         SELECT sidebar_id, parent_id, menu_name, menu_link, icon_class, required_permission, sort_order 
         FROM tbl_sidebar 
-        WHERE is_active = 1 
+        WHERE is_active IS TRUE 
         ORDER BY parent_id ASC, sort_order ASC
     ");
     $stmtMenu->execute();

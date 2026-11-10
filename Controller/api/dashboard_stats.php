@@ -47,7 +47,7 @@ try {
     $isP5OrAdmin = ($isAdmin || $unitCode === 'P5' || strpos($unitCode, 'P05') !== false || strpos($unitCode, 'QLNCKH') !== false);
 
     // Bộ lọc theo đơn vị
-    $whereUnit = "p.is_deleted = 0";
+    $whereUnit = "p.is_deleted IS FALSE";
     $unitParams = [];
     if (!$isP5OrAdmin && $userId > 0) {
         if ($userUnitId > 0) {
@@ -95,7 +95,7 @@ try {
                             SELECT SUM(pay.paid_amount) 
                             FROM tbl_project_payment pay 
                             JOIN tbl_project pr ON pay.project_id = pr.project_id 
-                            WHERE pr.sub_system_id = s.sub_system_id AND pr.is_deleted = 0
+                            WHERE pr.sub_system_id = s.sub_system_id AND pr.is_deleted IS FALSE
                         ), 0) AS total_paid_amount
                      FROM tbl_sub_system s
                      LEFT JOIN tbl_project p ON s.sub_system_id = p.sub_system_id AND $whereUnit
@@ -114,7 +114,7 @@ try {
                             SELECT SUM(pay.paid_amount) 
                             FROM tbl_project_payment pay 
                             JOIN tbl_project pr ON pay.project_id = pr.project_id 
-                            WHERE pr.project_type_id = t.project_type_id AND pr.is_deleted = 0
+                            WHERE pr.project_type_id = t.project_type_id AND pr.is_deleted IS FALSE
                         ), 0) AS total_paid_amount
                      FROM tbl_project_type t
                      LEFT JOIN tbl_project p ON t.project_type_id = p.project_type_id AND $whereUnit
@@ -181,7 +181,7 @@ try {
     }
 
     // LẤY TẤT CẢ CÁC NĂM THỰC TẾ TRONG CSDL ĐỂ TỰ ĐỘNG SINH OPTION VÀ MA TRẬN
-    $stmtYears = $pdo->query("SELECT DISTINCT EXTRACT(YEAR FROM $dateCol)::int AS y FROM tbl_project p WHERE p.is_deleted = 0 AND $dateCol IS NOT NULL ORDER BY y ASC");
+    $stmtYears = $pdo->query("SELECT DISTINCT EXTRACT(YEAR FROM $dateCol)::int AS y FROM tbl_project p WHERE p.is_deleted IS FALSE AND $dateCol IS NOT NULL ORDER BY y ASC");
     $dbYears = $stmtYears->fetchAll(PDO::FETCH_COLUMN);
 
     $currentYear = intval(date('Y'));
@@ -277,7 +277,7 @@ try {
                         COALESCE(m.full_name, 'Chưa gán') AS leader_name,
                         COALESCE(m.platoon, o.unit_name, '—') AS leader_unit
                     FROM tbl_project p
-                    LEFT JOIN tbl_project_member m ON p.project_id = m.project_id AND m.is_leader = 1
+                    LEFT JOIN tbl_project_member m ON p.project_id = m.project_id AND m.is_leader IS TRUE
                     LEFT JOIN tbl_user u ON p.project_user_action_id = u.user_id
                     LEFT JOIN tbl_org_unit o ON u.unit_id = o.unit_id
                     WHERE $whereUnit

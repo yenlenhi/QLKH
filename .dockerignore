@@ -9,3 +9,4 @@ LOCAL_SETUP.md
 asset/file
 asset/img/upload
 api/__pycache__
+scripts/*-smoke-payload.json

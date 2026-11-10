@@ -114,7 +114,7 @@ try {
                     $memberUserId,
                     $fullName,
                     $platoon,
-                    $isLeader
+                    (bool) $isLeader
                 ]);
             }
         }

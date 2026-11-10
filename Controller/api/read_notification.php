@@ -46,14 +46,14 @@ if (!$notiId) {
 try {
     // 3. Thực thi cập nhật is_read = 1 cho đúng người dùng
     if ($userId) {
-        $sql = "UPDATE tbl_notifications SET is_read = 1 WHERE id = :id AND user_id = :user_id";
+        $sql = "UPDATE tbl_notifications SET is_read = TRUE WHERE id = :id AND user_id = :user_id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':id' => $notiId,
             ':user_id' => $userId
         ]);
     } else {
-        $sql = "UPDATE tbl_notifications SET is_read = 1 WHERE id = :id";
+        $sql = "UPDATE tbl_notifications SET is_read = TRUE WHERE id = :id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':id' => $notiId]);
     }

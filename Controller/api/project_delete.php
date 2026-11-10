@@ -37,7 +37,7 @@ try {
     $pName = $projInfo['project_name'] ?? "";
 
     // 2. Thay vì DELETE, ta thực hiện UPDATE để chuyển vào thùng rác (soft delete)
-    $sql = "UPDATE tbl_project SET is_deleted = 1, deleted_at = NOW() WHERE project_id = ?";
+    $sql = "UPDATE tbl_project SET is_deleted = TRUE, deleted_at = NOW() WHERE project_id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$project_id]);
 

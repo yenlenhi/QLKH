@@ -41,8 +41,8 @@ try {
                    u_teacher.name AS action_user_name,
                    ou.unit_name AS action_user_unit,  -- BỔ SUNG TÊN ĐƠN VỊ CỦA USER THỰC HIỆN
                    u_owner.name AS owner_name,
-                   (SELECT m.full_name FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader = 1 LIMIT 1) AS leader_name,
-                   (SELECT m.platoon FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader = 1 LIMIT 1) AS leader_unit
+                   (SELECT m.full_name FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader IS TRUE LIMIT 1) AS leader_name,
+                   (SELECT m.platoon FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader IS TRUE LIMIT 1) AS leader_unit
             FROM tbl_project p
             LEFT JOIN tbl_project_level l ON p.level_id = l.level_id
             LEFT JOIN tbl_project_register_type r ON p.register_type_id = r.register_type_id
@@ -51,7 +51,7 @@ try {
             LEFT JOIN tbl_user u_teacher ON p.project_user_action_id = u_teacher.user_id
             LEFT JOIN tbl_org_unit ou ON u_teacher.unit_id = ou.unit_id  -- LIÊN KẾT ĐƠN VỊ
             LEFT JOIN tbl_user u_owner ON p.user_id = u_owner.user_id
-            WHERE p.project_id = ? AND p.is_deleted = 0";
+            WHERE p.project_id = ? AND p.is_deleted IS FALSE";
         $stmtProj = $pdo->prepare($sqlProj);
         $stmtProj->execute([$project_id]);
         $project = $stmtProj->fetch(PDO::FETCH_ASSOC);
@@ -80,7 +80,7 @@ try {
         $data = $project;
     } else {
         // --- 2. LẤY DANH SÁCH NHIỆM VỤ / ĐỀ TÀI ---
-        $whereClauses = ["p.is_deleted = 0"];
+        $whereClauses = ["p.is_deleted IS FALSE"];
         $params = [];
 
         // Lọc theo người thực hiện cụ thể (nếu có truyền)
@@ -110,7 +110,7 @@ try {
                        u.name AS creator_name,
                        u_teacher.name AS teacher_in_charge_name,
                        u_teacher.name AS action_user_name,
-                       (SELECT m.full_name FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader = 1 LIMIT 1) AS leader_name
+                       (SELECT m.full_name FROM tbl_project_member m WHERE m.project_id = p.project_id AND m.is_leader IS TRUE LIMIT 1) AS leader_name
                 FROM tbl_project p 
                 -- LEFT JOIN tbl_project_type t ON p.project_type_id = t.project_type_id
                 LEFT JOIN tbl_project_level l ON p.level_id = l.level_id

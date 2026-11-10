@@ -17,7 +17,7 @@ try {
     // Chỉ lấy các user có can_grant_permission = 1
     $sql = "SELECT user_id, username, name, role, status, can_grant_permission 
             FROM tbl_user 
-            WHERE can_grant_permission = 1 
+            WHERE can_grant_permission IS TRUE 
             ORDER BY user_id DESC";
             
     $stmt = $pdo->prepare($sql);

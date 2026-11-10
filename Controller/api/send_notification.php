@@ -66,7 +66,7 @@ try {
     // 4. Truy vấn thông tin nhiệm vụ
     $stmtProj = $pdo->prepare("SELECT project_id, project_code, project_name, user_id, project_user_action_id 
                                FROM tbl_project 
-                               WHERE project_id = :pid AND is_deleted = 0 
+                               WHERE project_id = :pid AND is_deleted IS FALSE 
                                LIMIT 1");
     $stmtProj->execute([':pid' => $projectId]);
     $projectRow = $stmtProj->fetch(PDO::FETCH_ASSOC);

@@ -33,8 +33,8 @@ try {
                         u.unit_id,
                         o.unit_name,
                         o.unit_code,
-                        u.can_grant_permission, 
-                        u.status
+                        CASE WHEN u.can_grant_permission IS TRUE THEN 1 ELSE 0 END AS can_grant_permission,
+                        CASE WHEN u.status IS TRUE THEN 1 ELSE 0 END AS status
                     FROM tbl_user u 
                     LEFT JOIN tbl_org_unit o ON u.unit_id = o.unit_id
                     WHERE u.user_id = ?
@@ -62,8 +62,8 @@ try {
                 u.unit_id,
                 o.unit_name,
                 o.unit_code,
-                u.can_grant_permission, 
-                u.status,
+                CASE WHEN u.can_grant_permission IS TRUE THEN 1 ELSE 0 END AS can_grant_permission,
+                CASE WHEN u.status IS TRUE THEN 1 ELSE 0 END AS status,
                 (SELECT COUNT(*) FROM tbl_role r WHERE r.user_id = u.user_id) AS permission_count
             FROM tbl_user u 
             LEFT JOIN tbl_org_unit o ON u.unit_id = o.unit_id

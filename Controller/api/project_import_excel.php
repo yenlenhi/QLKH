@@ -74,7 +74,7 @@ try {
         }
 
         // Kiểm tra trùng mã đề tài
-        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_project WHERE project_code = ? AND is_deleted = 0");
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM tbl_project WHERE project_code = ? AND is_deleted IS FALSE");
         $checkStmt->execute([$code]);
         if ($checkStmt->fetchColumn() > 0) {
             $errors[] = "Dòng $rowNum: Mã đề tài '$code' đã tồn tại.";
@@ -156,7 +156,7 @@ try {
                 ':project_id' => $newProjectId,
                 ':full_name'  => $leaderName,
                 ':platoon'    => trim($p['leader_unit'] ?? ''),
-                ':is_leader'  => 1
+                ':is_leader'  => true
             ]);
         }
 
@@ -168,7 +168,7 @@ try {
                     ':project_id' => $newProjectId,
                     ':full_name'  => $mName,
                     ':platoon'    => trim($p["member_unit_$m"] ?? ''),
-                    ':is_leader'  => 0
+                    ':is_leader'  => false
                 ]);
             }
         }

@@ -41,7 +41,7 @@ try {
     $pdo->beginTransaction();
 
     // 1. Kiểm tra đề tài hiện tại
-    $stmtCheck = $pdo->prepare("SELECT * FROM tbl_project WHERE project_id = ? AND is_deleted = 0");
+    $stmtCheck = $pdo->prepare("SELECT * FROM tbl_project WHERE project_id = ? AND is_deleted IS FALSE");
     $stmtCheck->execute([$project_id]);
     $currentProj = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -148,7 +148,7 @@ try {
                 }
 
                 if ($fullName !== '') {
-                    $stmtInsMem->execute([$project_id, $memberUserId, $fullName, $platoon, $isLeader]);
+                    $stmtInsMem->execute([$project_id, $memberUserId, $fullName, $platoon, (bool) $isLeader]);
                 }
             }
         }

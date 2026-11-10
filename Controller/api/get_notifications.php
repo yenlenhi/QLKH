@@ -21,7 +21,8 @@ if ($userId <= 0) {
 
 try {
     // 1. Lấy 10 thông báo mới nhất của đúng user_id
-    $sqlNotifications = "SELECT id, project_id, title, content, type, is_read, 
+    $sqlNotifications = "SELECT id, project_id, title, content, type,
+                                CASE WHEN is_read IS TRUE THEN 1 ELSE 0 END AS is_read,
                                 TO_CHAR(created_at, 'DD/MM/YYYY HH24:MI') AS created_at 
                          FROM tbl_notifications 
                          WHERE user_id = :user_id
@@ -33,7 +34,7 @@ try {
     $notifications = $stmtNoti->fetchAll(PDO::FETCH_ASSOC);
 
     // 2. Đếm số lượng thông báo chưa đọc (is_read = 0) của đúng user_id
-    $sqlUnread = "SELECT COUNT(*) FROM tbl_notifications WHERE user_id = :user_id AND is_read = 0";
+    $sqlUnread = "SELECT COUNT(*) FROM tbl_notifications WHERE user_id = :user_id AND is_read IS FALSE";
     $stmtUnread = $pdo->prepare($sqlUnread);
     $stmtUnread->execute([':user_id' => $userId]);
     $unreadCount = (int)$stmtUnread->fetchColumn();

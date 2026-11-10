@@ -17,11 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Cập nhật tất cả thông báo về trạng thái đã đọc (is_read = 1) theo ĐÚNG user_id
         if ($userId) {
-            $sql = "UPDATE tbl_notifications SET is_read = 1 WHERE is_read = 0 AND user_id = :user_id";
+            $sql = "UPDATE tbl_notifications SET is_read = TRUE WHERE is_read IS FALSE AND user_id = :user_id";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([':user_id' => $userId]);
         } else {
-            $sql = "UPDATE tbl_notifications SET is_read = 1 WHERE is_read = 0";
+            $sql = "UPDATE tbl_notifications SET is_read = TRUE WHERE is_read IS FALSE";
             $stmt = $pdo->prepare($sql);
             $stmt->execute();
         }
