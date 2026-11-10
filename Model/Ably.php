@@ -11,7 +11,7 @@ function ablyRequest(string $method, string $path, ?array $body = null): array
         throw new RuntimeException('ABLY_API_KEY is malformed.');
     }
 
-    $request = curl_init('https://rest.ably.io' . $path);
+    $request = curl_init('https://main.realtime.ably.net' . $path);
     curl_setopt_array($request, [
         CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_RETURNTRANSFER => true,
@@ -38,6 +38,8 @@ function issueAblyTokenRequest(int $userId): array
     $keyName = explode(':', requireAppEnv('ABLY_API_KEY'), 2)[0];
     $channel = 'notifications:user:' . $userId;
     return ablyRequest('POST', '/keys/' . rawurlencode($keyName) . '/requestToken', [
+        'keyName' => $keyName,
+        'timestamp' => (int) floor(microtime(true) * 1000),
         'clientId' => 'user-' . $userId,
         'ttl' => 3_600_000,
         'capability' => json_encode([$channel => ['subscribe']], JSON_THROW_ON_ERROR),
